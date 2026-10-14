@@ -258,7 +258,7 @@ private fun PeerRow(p: PeerRecord, state: PeerState, onClick: () -> Unit, onForg
         .clickable(enabled = state == PeerState.OFFLINE, onClick = onClick)
         .semantics { selected = connected }
         .padding(start = 12.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-        DeviceTile(p.platform, 34.dp)
+        DeviceTile(p.platform, 36.dp, seed = p.deviceId)
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Text(p.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)

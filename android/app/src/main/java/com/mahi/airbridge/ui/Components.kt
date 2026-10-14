@@ -29,9 +29,7 @@ import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.FolderZip
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.InsertDriveFile
-import androidx.compose.material.icons.outlined.LaptopMac
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material.icons.outlined.SmartDisplay
 import androidx.compose.material3.DropdownMenu
@@ -132,13 +130,28 @@ fun AppLogo(size: Dp = 44.dp) {
     }
 }
 
-/** Gradient tile with a device symbol. */
+private val Wallpapers = listOf(
+    listOf(Color(0xFF5C45D9), Color(0xFF338CFA), Color(0xFFFA8C59)),
+    listOf(Color(0xFF0D4DD9), Color(0xFF26B3FA)),
+    listOf(Color(0xFFD9408C), Color(0xFF7340E6)),
+    listOf(Color(0xFF0D8C8C), Color(0xFF3373F2)),
+)
+
+/** Small drawn picture of the device (a laptop for a Mac, a phone otherwise); the wallpaper comes from [seed]. */
 @Composable
-fun DeviceTile(platform: String, size: Dp = 40.dp) {
-    Box(Modifier.size(width = size, height = size * 1.15f).clip(RoundedCornerShape(10.dp))
-        .background(Brush.linearGradient(listOf(Color(0xFF408CFF), Color(0xFF734DF2)))), contentAlignment = Alignment.Center) {
-        Icon(if (platform == "android") Icons.Outlined.PhoneAndroid else Icons.Outlined.LaptopMac, null,
-            tint = Color.White, modifier = Modifier.size(size * 0.55f))
+fun DeviceTile(platform: String, size: Dp = 40.dp, seed: String = "") {
+    val wallpaper = Brush.verticalGradient(Wallpapers[(seed.hashCode() and 0x7FFFFFFF) % Wallpapers.size])
+    Box(Modifier.size(width = size, height = size * 1.15f), contentAlignment = Alignment.Center) {
+        if (platform == "android") {
+            Box(Modifier.size(width = size * 0.58f, height = size * 1.12f).clip(RoundedCornerShape(size * 0.12f))
+                .background(Color(0xFF1C1C1E)).padding(2.dp).clip(RoundedCornerShape(size * 0.09f)).background(wallpaper))
+        } else {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(Modifier.size(width = size * 0.8f, height = size * 0.52f).clip(RoundedCornerShape(3.dp))
+                    .background(Color(0xFF26262A)).padding(2.dp).clip(RoundedCornerShape(2.dp)).background(wallpaper))
+                Box(Modifier.size(width = size, height = size * 0.07f).clip(RoundedCornerShape(2.dp)).background(Color(0xFFB4B4B8)))
+            }
+        }
     }
 }
 

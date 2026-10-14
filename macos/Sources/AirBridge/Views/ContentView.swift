@@ -331,18 +331,65 @@ extension AppModel {
     }
 }
 
+/// Small drawn picture of the device: a phone with a colored wallpaper (or a laptop for Macs).
+/// The wallpaper is picked from the device id so two phones with the same name look different.
 struct DeviceTile: View {
     let platform: String
+    var seed: String = ""
     var size: CGFloat = 40
+
+    private static let wallpapers: [[Color]] = [
+        [Color(red: 0.36, green: 0.27, blue: 0.85), Color(red: 0.20, green: 0.55, blue: 0.98), Color(red: 0.98, green: 0.55, blue: 0.35)],
+        [Color(red: 0.05, green: 0.30, blue: 0.85), Color(red: 0.15, green: 0.70, blue: 0.98)],
+        [Color(red: 0.85, green: 0.25, blue: 0.55), Color(red: 0.45, green: 0.25, blue: 0.90)],
+        [Color(red: 0.05, green: 0.55, blue: 0.55), Color(red: 0.20, green: 0.45, blue: 0.95)],
+    ]
+
+    private var wallpaper: LinearGradient {
+        let hash = seed.unicodeScalars.reduce(5381) { (($0 &<< 5) &+ $0) ^ Int($1.value) }
+        let i = (hash & 0x7FFFFFFF) % Self.wallpapers.count
+        return LinearGradient(colors: Self.wallpapers[i], startPoint: .top, endPoint: .bottom)
+    }
+
     var body: some View {
-        Image(systemName: platform == "android" ? "iphone.gen3" : "laptopcomputer")
-            .font(.system(size: size * 0.5))
-            .foregroundStyle(.white)
-            .frame(width: size, height: size * 1.15)
-            .background(RoundedRectangle(cornerRadius: 9)
-                .fill(LinearGradient(colors: [Color(red: 0.25, green: 0.55, blue: 1), Color(red: 0.45, green: 0.30, blue: 0.95)],
-                                     startPoint: .topLeading, endPoint: .bottomTrailing)))
-            .accessibilityHidden(true)
+        Group {
+            if platform == "android" { phone } else { laptop }
+        }
+        .frame(width: size, height: size * 1.3)
+        .accessibilityHidden(true)
+    }
+
+    private var phone: some View {
+        let w = size * 0.62, h = size * 1.28
+        return ZStack {
+            RoundedRectangle(cornerRadius: w * 0.2, style: .continuous)
+                .fill(LinearGradient(colors: [Color(white: 0.30), Color(white: 0.08)], startPoint: .topLeading, endPoint: .bottomTrailing))
+            RoundedRectangle(cornerRadius: w * 0.15, style: .continuous)
+                .fill(wallpaper)
+                .overlay(
+                    // Soft "wave" so the wallpaper reads as a picture, not a flat color.
+                    Ellipse().fill(.white.opacity(0.22)).frame(width: w * 1.2, height: h * 0.35)
+                        .offset(x: w * 0.25, y: h * 0.18).blur(radius: 2)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: w * 0.15, style: .continuous))
+                .padding(max(1.5, w * 0.06))
+            Circle().fill(Color(white: 0.05)).frame(width: w * 0.12, height: w * 0.12)
+                .offset(y: -h / 2 + w * 0.16)
+        }
+        .frame(width: w, height: h)
+        .shadow(color: .black.opacity(0.25), radius: 2, y: 1)
+    }
+
+    private var laptop: some View {
+        let w = size * 0.95
+        return VStack(spacing: 0) {
+            RoundedRectangle(cornerRadius: 3, style: .continuous)
+                .fill(Color(white: 0.15))
+                .overlay(RoundedRectangle(cornerRadius: 2).fill(wallpaper).padding(2))
+                .frame(width: w * 0.8, height: w * 0.52)
+            RoundedRectangle(cornerRadius: 2).fill(Color(white: 0.7)).frame(width: w, height: w * 0.07)
+        }
+        .shadow(color: .black.opacity(0.25), radius: 2, y: 1)
     }
 }
 
@@ -354,7 +401,7 @@ struct PeerRow: View {
     var body: some View {
         let state = model.state(of: peer)
         HStack(spacing: 12) {
-            DeviceTile(platform: peer.platform, size: compact ? 34 : 42)
+            DeviceTile(platform: peer.platform, seed: peer.deviceId, size: compact ? 36 : 44)
             VStack(alignment: .leading, spacing: 3) {
                 Text(peer.name).font(.callout.weight(.semibold)).lineLimit(1)
                 HStack(spacing: 5) {
@@ -425,7 +472,7 @@ struct DevicesPage: View {
                     }
                     ForEach(unpaired) { d in
                         HStack(spacing: 12) {
-                            DeviceTile(platform: "android", size: 34)
+                            DeviceTile(platform: "android", seed: d.deviceId ?? d.name, size: 34)
                             Text(d.name).font(.callout.weight(.semibold))
                             Spacer()
                             Button("Connect…") { showConnect = true }.buttonStyle(SecondaryButtonStyle())
