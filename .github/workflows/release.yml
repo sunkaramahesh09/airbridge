@@ -40,7 +40,7 @@ jobs:
           tar -czf dist/airbridge-macos-x86_64.tar.gz -C target/x86_64-apple-darwin/release airbridge
           tar -czf dist/airbridge-macos.tar.gz -C dist airbridge
       - name: Publish Release Assets
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             dist/airbridge-macos.tar.gz
